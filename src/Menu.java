@@ -44,14 +44,10 @@ public class Menu {
                         gestor.inserir();
                         break;
                     case 6:
-                        System.out.println("Introduir dades XML a modificar:");
-                        String xmlData = scanner.nextLine();
-                        gestor.modificar(xmlData);
+                        gestor.modificar();
                         break;
                     case 7:
-                        System.out.println("Introduir condició per eliminar:");
-                        String condition = scanner.nextLine();
-                        gestor.eliminar(condition);
+                        gestor.eliminar();
                         break;
                     case 8:
                         gestor.close();

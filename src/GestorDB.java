@@ -156,32 +156,117 @@ public class GestorDB {
         }
     }
 
+    public void modificar() throws XQException {
+        Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Introduir ID del Punt a modificar:");
+        String id = scanner.nextLine();
 
+        // Verificar si el ID existe
+        String xqueryCheckId = String.format(
+                "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                        "where $x/ID = '%s' " +
+                        "return $x",
+                id
+        );
 
+        XQPreparedExpression expCheckId = conn.prepareExpression(xqueryCheckId);
+        XQResultSequence resultCheckId = expCheckId.executeQuery();
 
+        if (!resultCheckId.next()) {
+            System.out.println("El ID no existe. Modificación cancelada.");
+            return;
+        }
 
+        // Solicitar nuevos datos
+        System.out.println("Introduir ED50_COORD_X:");
+        String ed50CoordX = scanner.nextLine();
+        System.out.println("Introduir ED50_COORD_Y:");
+        String ed50CoordY = scanner.nextLine();
+        System.out.println("Introduir ETRS89_COORD_X:");
+        String etrs89CoordX = scanner.nextLine();
+        System.out.println("Introduir ETRS89_COORD_Y:");
+        String etrs89CoordY = scanner.nextLine();
+        System.out.println("Introduir Longitud:");
+        String longitud = scanner.nextLine();
+        System.out.println("Introduir Latitud:");
+        String latitud = scanner.nextLine();
+        System.out.println("Introduir Icon URL:");
+        String icon = scanner.nextLine();
+        System.out.println("Introduir Tooltip:");
+        String tooltip = scanner.nextLine();
+        System.out.println("Introduir URL:");
+        String url = scanner.nextLine();
 
+        String xmlData = String.format(
+                "<Punt>" +
+                        "<ID>%s</ID>" +
+                        "<Coord>" +
+                        "<ED50_COORD_X>%s</ED50_COORD_X>" +
+                        "<ED50_COORD_Y>%s</ED50_COORD_Y>" +
+                        "<ETRS89_COORD_X>%s</ETRS89_COORD_X>" +
+                        "<ETRS89_COORD_Y>%s</ETRS89_COORD_Y>" +
+                        "<Longitud>%s</Longitud>" +
+                        "<Latitud>%s</Latitud>" +
+                        "</Coord>" +
+                        "<Icon>%s</Icon>" +
+                        "<Tooltip>%s</Tooltip>" +
+                        "<URL>%s</URL>" +
+                        "</Punt>",
+                id, ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
+        );
 
+        String xqueryUpdate = String.format(
+                "update replace doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt[ID='%s'] with %s",
+                id, xmlData
+        );
 
+        System.out.println("XQuery Update: " + xqueryUpdate);  // Mensaje de depuración
 
-    public void modificar(String xmlData) throws XQException {
-        String xquery = "declare variable $xmlData as element() external; "
-                + "update replace doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root with $xmlData";
-
-        XQPreparedExpression exp = conn.prepareExpression(xquery);
-        exp.bindString(new QName("xmlData"), xmlData, null);
-        exp.executeQuery();
+        try {
+            XQExpression expr = conn.createExpression();
+            expr.executeCommand(xqueryUpdate);
+            System.out.println("Punt modificat correctament.");
+        } catch (XQException e) {
+            System.out.println("Error en la modificación: " + e.getMessage());
+        }
     }
 
+    public void eliminar() throws XQException {
+        Scanner scanner = new Scanner(System.in);
 
-    public void eliminar(String condition) throws XQException {
-        String xquery = "declare variable $condition as xs:string external; "
-                + "update delete doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root/*[$condition]";
+        System.out.println("Introduir ID del Punt a eliminar:");
+        String id = scanner.nextLine();
 
-        XQPreparedExpression exp = conn.prepareExpression(xquery);
-        exp.bindString(new QName("condition"), condition, null);
-        exp.executeQuery();
+        // Verificar si el ID existe
+        String xqueryCheckId = String.format(
+                "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                        "where $x/ID = '%s' " +
+                        "return $x",
+                id
+        );
+
+        XQPreparedExpression expCheckId = conn.prepareExpression(xqueryCheckId);
+        XQResultSequence resultCheckId = expCheckId.executeQuery();
+
+        if (!resultCheckId.next()) {
+            System.out.println("El ID no existe. Eliminación cancelada.");
+            return;
+        }
+
+        String xqueryDelete = String.format(
+                "update delete doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt[ID='%s']",
+                id
+        );
+
+        System.out.println("XQuery Delete: " + xqueryDelete);  // Mensaje de depuración
+
+        try {
+            XQExpression expr = conn.createExpression();
+            expr.executeCommand(xqueryDelete);
+            System.out.println("Punt eliminat correctament.");
+        } catch (XQException e) {
+            System.out.println("Error en la eliminación: " + e.getMessage());
+        }
     }
-
 }
