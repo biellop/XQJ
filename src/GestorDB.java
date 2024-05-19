@@ -59,6 +59,26 @@ public class GestorDB {
     public void inserir() throws XQException {
         Scanner scanner = new Scanner(System.in);
 
+        System.out.println("Introduir ID:");
+        String id = scanner.nextLine();
+
+        // Consulta para verificar si el ID ya existe
+        String xqueryCheckId = String.format(
+                "for $x in doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                        "where $x/ID = '%s' " +
+                        "return $x",
+                id
+        );
+
+        XQPreparedExpression expCheckId = conn.prepareExpression(xqueryCheckId);
+        XQResultSequence resultCheckId = expCheckId.executeQuery();
+
+        if (resultCheckId.next()) {
+            System.out.println("El ID ya está en uso. Inserción cancelada.");
+            return;
+        }
+
+        // Solicitar el resto de datos
         System.out.println("Introduir ED50_COORD_X:");
         String ed50CoordX = scanner.nextLine();
         System.out.println("Introduir ED50_COORD_Y:");
@@ -78,19 +98,9 @@ public class GestorDB {
         System.out.println("Introduir URL:");
         String url = scanner.nextLine();
 
-        // Consulta para obtener el último ID
-        String xqueryMaxId = "max(for $x in doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt return number($x/ID))";
-        XQPreparedExpression expMaxId = conn.prepareExpression(xqueryMaxId);
-        XQResultSequence resultMaxId = expMaxId.executeQuery();
-
-        int newId = 1; // Default ID
-        if (resultMaxId.next()) {
-            newId = resultMaxId.getInt() + 1;
-        }
-
         String xmlData = String.format(
                 "<Punt>" +
-                        "<ID>%d</ID>" +
+                        "<ID>%s</ID>" +
                         "<Coord>" +
                         "<ED50_COORD_X>%s</ED50_COORD_X>" +
                         "<ED50_COORD_Y>%s</ED50_COORD_Y>" +
@@ -103,7 +113,7 @@ public class GestorDB {
                         "<Tooltip>%s</Tooltip>" +
                         "<URL>%s</URL>" +
                         "</Punt>",
-                newId, ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
+                id, ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
         );
 
         String xqueryInsert = String.format(
@@ -125,9 +135,9 @@ public class GestorDB {
         // Consulta para verificar la inserción
         String xqueryVerify = String.format(
                 "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
-                        "where $x/ID = '%d' " +
+                        "where $x/ID = '%s' " +
                         "return $x",
-                newId
+                id
         );
 
         System.out.println("XQuery Verify: " + xqueryVerify);  // Mensaje de depuración
@@ -145,6 +155,7 @@ public class GestorDB {
             System.out.println("Error en la verificación: " + e.getMessage());
         }
     }
+
 
 
 
