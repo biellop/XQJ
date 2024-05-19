@@ -78,9 +78,19 @@ public class GestorDB {
         System.out.println("Introduir URL:");
         String url = scanner.nextLine();
 
-        String xquery = String.format(
-                "update insert " +
-                        "<Punt>" +
+        // Consulta para obtener el último ID
+        String xqueryMaxId = "max(for $x in doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt return number($x/ID))";
+        XQPreparedExpression expMaxId = conn.prepareExpression(xqueryMaxId);
+        XQResultSequence resultMaxId = expMaxId.executeQuery();
+
+        int newId = 1; // Default ID
+        if (resultMaxId.next()) {
+            newId = resultMaxId.getInt() + 1;
+        }
+
+        String xmlData = String.format(
+                "<Punt>" +
+                        "<ID>%d</ID>" +
                         "<Coord>" +
                         "<ED50_COORD_X>%s</ED50_COORD_X>" +
                         "<ED50_COORD_Y>%s</ED50_COORD_Y>" +
@@ -92,14 +102,53 @@ public class GestorDB {
                         "<Icon>%s</Icon>" +
                         "<Tooltip>%s</Tooltip>" +
                         "<URL>%s</URL>" +
-                        "</Punt> into doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange",
-                ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
+                        "</Punt>",
+                newId, ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
         );
 
-        XQExpression expr = conn.createExpression();
-        expr.executeCommand(xquery);
-        System.out.println("Nou Punt inserit correctament.");
+        String xqueryInsert = String.format(
+                "update insert %s into doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange",
+                xmlData
+        );
+
+        System.out.println("XQuery Insert: " + xqueryInsert);  // Mensaje de depuración
+
+        try {
+            XQExpression expr = conn.createExpression();
+            expr.executeCommand(xqueryInsert);
+            System.out.println("Nou Punt inserit correctament.");
+        } catch (XQException e) {
+            System.out.println("Error en la inserción: " + e.getMessage());
+            return;
+        }
+
+        // Consulta para verificar la inserción
+        String xqueryVerify = String.format(
+                "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                        "where $x/ID = '%d' " +
+                        "return $x",
+                newId
+        );
+
+        System.out.println("XQuery Verify: " + xqueryVerify);  // Mensaje de depuración
+
+        try {
+            XQPreparedExpression expVerify = conn.prepareExpression(xqueryVerify);
+            XQResultSequence resultVerify = expVerify.executeQuery();
+
+            if (resultVerify.next()) {
+                System.out.println("Verificación de la inserción: " + resultVerify.getItemAsString(null));
+            } else {
+                System.out.println("No se encontró el nuevo Punt insertado.");
+            }
+        } catch (XQException e) {
+            System.out.println("Error en la verificación: " + e.getMessage());
+        }
     }
+
+
+
+
 
 
 
