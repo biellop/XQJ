@@ -81,7 +81,7 @@ public class GestorDB {
 
         // Consulta para verificar si el ID ya existe
         String xqueryCheckId = String.format(
-                "for $x in doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
                         "where $x/ID = '%s' " +
                         "return $x",
                 id
