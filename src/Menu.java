@@ -41,13 +41,11 @@ public class Menu {
                         gestor.consulta4();
                         break;
                     case 5:
-                        System.out.println("Introduir dades XML a modificar:");
-                        String xmlData = scanner.nextLine();
-                        gestor.modificar(xmlData);
+                        gestor.inserir();
                         break;
                     case 6:
                         System.out.println("Introduir dades XML a modificar:");
-                        xmlData = scanner.nextLine();
+                        String xmlData = scanner.nextLine();
                         gestor.modificar(xmlData);
                         break;
                     case 7:

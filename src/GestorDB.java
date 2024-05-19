@@ -1,3 +1,4 @@
+import javax.xml.namespace.QName;
 import javax.xml.xquery.*;
 import net.xqj.exist.ExistXQDataSource;
 
@@ -77,34 +78,50 @@ public class GestorDB {
         System.out.println("Introduir URL:");
         String url = scanner.nextLine();
 
-        String xmlData = "<Punt>"
-                + "<Coord>"
-                + "<ED50_COORD_X>" + ed50CoordX + "</ED50_COORD_X>"
-                + "<ED50_COORD_Y>" + ed50CoordY + "</ED50_COORD_Y>"
-                + "<ETRS89_COORD_X>" + etrs89CoordX + "</ETRS89_COORD_X>"
-                + "<ETRS89_COORD_Y>" + etrs89CoordY + "</ETRS89_COORD_Y>"
-                + "<Longitud>" + longitud + "</Longitud>"
-                + "<Latitud>" + latitud + "</Latitud>"
-                + "</Coord>"
-                + "<Icon>" + icon + "</Icon>"
-                + "<Tooltip>" + tooltip + "</Tooltip>"
-                + "<URL>" + url + "</URL>"
-                + "</Punt>";
+        String xquery = String.format(
+                "update insert " +
+                        "<Punt>" +
+                        "<Coord>" +
+                        "<ED50_COORD_X>%s</ED50_COORD_X>" +
+                        "<ED50_COORD_Y>%s</ED50_COORD_Y>" +
+                        "<ETRS89_COORD_X>%s</ETRS89_COORD_X>" +
+                        "<ETRS89_COORD_Y>%s</ETRS89_COORD_Y>" +
+                        "<Longitud>%s</Longitud>" +
+                        "<Latitud>%s</Latitud>" +
+                        "</Coord>" +
+                        "<Icon>%s</Icon>" +
+                        "<Tooltip>%s</Tooltip>" +
+                        "<URL>%s</URL>" +
+                        "</Punt> into doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange",
+                ed50CoordX, ed50CoordY, etrs89CoordX, etrs89CoordY, longitud, latitud, icon, tooltip, url
+        );
 
-        String xquery = "update insert " + xmlData + " into doc('/db/Aparcaments/ESTACIONS_BUS_GEOXML.xml')/root";
-        XQPreparedExpression exp = conn.prepareExpression(xquery);
-        exp.executeQuery();
+        XQExpression expr = conn.createExpression();
+        expr.executeCommand(xquery);
+        System.out.println("Nou Punt inserit correctament.");
     }
+
+
+
+
 
     public void modificar(String xmlData) throws XQException {
-        String xquery = "update replace $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root with " + xmlData;
+        String xquery = "declare variable $xmlData as element() external; "
+                + "update replace doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root with $xmlData";
+
         XQPreparedExpression exp = conn.prepareExpression(xquery);
+        exp.bindString(new QName("xmlData"), xmlData, null);
         exp.executeQuery();
     }
 
+
     public void eliminar(String condition) throws XQException {
-        String xquery = "update delete doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root/*[condition]";
+        String xquery = "declare variable $condition as xs:string external; "
+                + "update delete doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/root/*[$condition]";
+
         XQPreparedExpression exp = conn.prepareExpression(xquery);
+        exp.bindString(new QName("condition"), condition, null);
         exp.executeQuery();
     }
+
 }
