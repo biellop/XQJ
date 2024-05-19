@@ -48,13 +48,30 @@ public class GestorDB {
         }
     }
     public void consulta4() throws XQException {
-        String xquery = "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')//Punt where contains($x/Tooltip, 'NITBUS') return $x";
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Introduir ID a buscar:");
+        String id = scanner.nextLine();
+
+        // Consulta para buscar el Punt por ID
+        String xquery = String.format(
+                "for $x in doc('/db/bus/ESTACIONS_BUS_GEOXML.xml')/Guiamap_Xchange/Punt " +
+                        "where $x/ID = '%s' " +
+                        "return $x",
+                id
+        );
+
+        System.out.println("XQuery: " + xquery);  // Mensaje de depuración
+
         XQPreparedExpression exp = conn.prepareExpression(xquery);
         XQResultSequence result = exp.executeQuery();
-        while (result.next()) {
-            System.out.println(result.getItemAsString(null));
+
+        if (result.next()) {
+            System.out.println("Resultat de la cerca: " + result.getItemAsString(null));
+        } else {
+            System.out.println("No s'ha trobat cap Punt amb l'ID indicat.");
         }
     }
+
 
     public void inserir() throws XQException {
         Scanner scanner = new Scanner(System.in);

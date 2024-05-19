@@ -15,9 +15,9 @@ public class Menu {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             System.out.println("1. Select All");
-            System.out.println("2. Nitbus");
-            System.out.println("3. M19");
-            System.out.println("4. ???");
+            System.out.println("2. Buscar buses Nitbus");
+            System.out.println("3. Buscar Linea M19");
+            System.out.println("4. Buscar por ID");
             System.out.println("5. Inserir");
             System.out.println("6. Modificar");
             System.out.println("7. Eliminar");
